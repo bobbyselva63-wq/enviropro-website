@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}EnviroPro Solutions — Environmental Consulting & Sustainability Advisory{% endblock %}
+{% block content %}
+
+<section class="hero">
+  <svg class="rings" viewBox="0 0 480 480" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="240" cy="240" r="230" fill="none" stroke="#E4D2B0" stroke-width="1"/>
+    <circle cx="240" cy="240" r="180" fill="none" stroke="#E4D2B0" stroke-width="1"/>
+    <circle cx="240" cy="240" r="130" fill="none" stroke="#E4D2B0" stroke-width="1"/>
+    <circle cx="240" cy="240" r="80" fill="none" stroke="#E4D2B0" stroke-width="1"/>
+  </svg>
+  <div class="hero-inner">
+    <span class="eyebrow">Environmental Consulting &amp; Sustainability Advisory</span>
+    <h1>EnviroPro Solutions</h1>
+    <div class="rule"></div>
+    <p class="lede">&ldquo;Committed to helping businesses adopt sustainable, compliant, and future-ready environmental practices.&rdquo;</p>
+    <div class="hero-ctas">
+      <a href="#services" class="btn btn-primary">Explore Services</a>
+      <a href="{{ url_for('contact') }}" class="btn btn-outline">Get in Touch</a>
+    </div>
+    <div class="founded-tag">Founded 2026</div>
+  </div>
+</section>
+
+<section id="sectors">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Where We Work</span>
+      <h2>Our Sectors</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="sectors-grid">
+      <div class="card sector-card reveal">
+        <div class="sector-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18M6 21V8l6-4 6 4v13M9 21v-6h6v6M9 12h.01M15 12h.01M9 9h.01M15 9h.01"/></svg></div>
+        <h3>Urban &amp; Infrastructure</h3>
+        <p>Environmental support for urban development, healthcare, residential, and green infrastructure projects.</p>
+      </div>
+      <div class="card sector-card reveal">
+        <div class="sector-icon"><svg viewBox="0 0 24 24"><path d="M4 21V10l4-3 4 3v11M12 21v-7l4-3 4 3v7M4 21h16"/></svg></div>
+        <h3>Environment &amp; Climate Change</h3>
+        <p>Advisory on emissions, climate risk, and industrial environmental management for a lower-carbon future.</p>
+      </div>
+      <div class="card sector-card reveal">
+        <div class="sector-icon"><svg viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/><circle cx="12" cy="12" r="4"/></svg></div>
+        <h3>Engineering &amp; Utility Management</h3>
+        <p>Smart utility planning and engineering support for water, energy, and resource management systems.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="services" class="alt-bg">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">What We Offer</span>
+      <h2>Our Services</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="services-list reveal">
+      <div class="service-row"><div class="svc-badge">C</div><div><h3>Engineering, Consulting &amp; Advisory</h3><p>End-to-end project management consulting for integrated environmental and urban infrastructure development.</p></div></div>
+      <div class="service-row"><div class="svc-badge">A</div><div><h3>Environmental Consultancy &amp; Affiliation</h3><p>Support in obtaining Environmental Clearances, Consents to Establish/Operate, and approvals from Pollution Control Boards.</p></div></div>
+      <div class="service-row"><div class="svc-badge">I</div><div><h3>Environmental Impact Assessment</h3><p>Scientific assessment of project impact on air, water, soil, and surrounding ecosystems.</p></div></div>
+      <div class="service-row"><div class="svc-badge">S</div><div><h3>Sustainability &amp; ESG Advisory</h3><p>Practical roadmaps to help organizations build credible, measurable sustainability programs.</p></div></div>
+      <div class="service-row"><div class="svc-badge">W</div><div><h3>Waste &amp; Resource Efficiency Planning</h3><p>Strategies to reduce, reuse, and responsibly manage waste and resource consumption.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="approach">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">How We Work</span>
+      <h2>Our Approach &amp; Methodology</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="approach-grid reveal">
+      <div class="cycle-wrap">
+        <svg class="cycle-svg" width="300" height="300" viewBox="0 0 300 300">
+          <circle cx="150" cy="150" r="128" fill="none" stroke="#DCD3C0" stroke-width="1"/>
+          <path d="M150 22 A128 128 0 0 1 278 150" fill="none" stroke="#2D6A4F" stroke-width="26"/>
+          <path d="M278 150 A128 128 0 0 1 150 278" fill="none" stroke="#B8935A" stroke-width="26"/>
+          <path d="M150 278 A128 128 0 0 1 22 150" fill="none" stroke="#1B4332" stroke-width="26"/>
+          <path d="M22 150 A128 128 0 0 1 150 22" fill="none" stroke="#8C6A3C" stroke-width="26"/>
+          <text x="214" y="80" text-anchor="middle">REDUCE</text>
+          <text x="220" y="222" text-anchor="middle">REUSE</text>
+          <text x="86" y="222" text-anchor="middle">RECYCLE</text>
+          <text x="80" y="80" text-anchor="middle">RECOVER</text>
+          <circle cx="150" cy="150" r="86" fill="#FBF8F2" stroke="#DCD3C0"/>
+          <text x="150" y="146" text-anchor="middle" fill="#1B4332" font-size="13" font-family="Playfair Display, serif" font-weight="700">Resource</text>
+          <text x="150" y="164" text-anchor="middle" fill="#1B4332" font-size="13" font-family="Playfair Display, serif" font-weight="700">Cycle</text>
+        </svg>
+      </div>
+      <div class="approach-copy">
+        <h3>Reduce, Reuse, Recycle, Recover</h3>
+        <p>Every engagement follows a resource-conscious cycle — minimizing waste at source, maximizing reuse, enabling recycling, and recovering value wherever possible.</p>
+        <h3>QCDR Methodology</h3>
+        <ul class="qcdr-list">
+          <li><span class="qcdr-dot"></span><div><strong>Quality</strong><span>High performance and reliability</span></div></li>
+          <li><span class="qcdr-dot"></span><div><strong>Cost</strong><span>Competitive and transparent pricing</span></div></li>
+          <li><span class="qcdr-dot"></span><div><strong>Delivery</strong><span>On time, fulfilling commitments</span></div></li>
+          <li><span class="qcdr-dot"></span><div><strong>Responsiveness</strong><span>Flexibility and commitment</span></div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt-bg">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Recent Work</span>
+      <h2>Featured Projects</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="projects-grid reveal">
+      {% for p in projects %}
+      <div class="project-card">
+        <img class="img" src="{{ p['image_url'] }}" alt="{{ p['title'] }}">
+        <div class="content">
+          <span class="tag">{{ p['sector'] }}</span>
+          <h3>{{ p['title'] }}</h3>
+          <p>{{ p['summary'] }}</p>
+        </div>
+      </div>
+      {% else %}
+      <p class="empty-state">Projects will appear here soon.</p>
+      {% endfor %}
+    </div>
+    <div style="text-align:center; margin-top:40px;">
+      <a href="{{ url_for('projects') }}" class="btn btn-forest">View All Projects</a>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Our Standing</span>
+      <h2>Why EnviroPro Solutions</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="stat-grid reveal">
+      <div class="stat-card"><div class="num">2026</div><div class="lbl">Founded</div></div>
+      <div class="stat-card"><div class="num">1&ndash;5</div><div class="lbl">Team Members</div></div>
+      <div class="stat-card"><div class="num">1&ndash;5</div><div class="lbl">Projects &amp; Clients</div></div>
+    </div>
+    <div class="why-body reveal">
+      <p>As a startup founded in 2026, EnviroPro Solutions brings fresh thinking, personalized attention, and agility that larger firms often can't match. Every client works directly with our core team, ensuring fast turnaround and solutions tailored to their exact needs and budget.</p>
+      <ul class="why-list">
+        <li>Direct access to founders and core consultants on every project</li>
+        <li>Transparent, competitive pricing with no hidden costs</li>
+        <li>Technically sound, practical recommendations, not boilerplate reports</li>
+        <li>Agile turnaround suited to startups, SMEs, and growing enterprises</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

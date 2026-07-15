@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — EnviroPro Solutions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600,700;0,700;1,500&family=Inter:wght@400;500;600;700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="admin-shell">
+  <aside class="admin-side">
+    <a href="{{ url_for('admin_dashboard') }}" class="brand">EnviroPro <span>Admin</span></a>
+    <nav class="admin-nav">
+      <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('home') }}" target="_blank">View Site &#8599;</a>
+      <a href="{{ url_for('admin_logout') }}">Logout</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <h1>Dashboard</h1>
+      <div style="font-family:'Jost',sans-serif; font-size:.85rem; color:var(--grey);">
+        Logged in as <strong>{{ session.admin_username }}</strong>
+      </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, msg in messages %}
+          <div class="flash {{ category }}">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="admin-stats">
+      <div class="admin-stat"><div class="num">{{ stats.total_enquiries }}</div><div class="lbl">Total Enquiries</div></div>
+      <div class="admin-stat"><div class="num">{{ stats.new_enquiries }}</div><div class="lbl">New Enquiries</div></div>
+      <div class="admin-stat"><div class="num">{{ stats.total_projects }}</div><div class="lbl">Projects Listed</div></div>
+    </div>
+
+    <!-- ENQUIRIES -->
+    <div class="admin-panel">
+      <h2>Enquiries</h2>
+      <table>
+        <thead>
+          <tr><th>Name</th><th>Contact</th><th>Message</th><th>Received</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for e in enquiries %}
+          <tr>
+            <td>{{ e['name'] }}</td>
+            <td>{{ e['email'] }}{% if e['phone'] %}<br>{{ e['phone'] }}{% endif %}</td>
+            <td style="max-width:260px;">{{ e['message'] or '—' }}</td>
+            <td>{{ e['created_at'][:16].replace('T',' ') }}</td>
+            <td>
+              <span class="badge {{ 'badge-new' if e['status']=='New' else ('badge-contacted' if e['status']=='Contacted' else 'badge-closed') }}">{{ e['status'] }}</span>
+            </td>
+            <td>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <form method="POST" action="{{ url_for('update_enquiry_status', enquiry_id=e['id']) }}" class="status-form">
+                  <select name="status" onchange="this.form.submit()">
+                    <option value="New" {{ 'selected' if e['status']=='New' }}>New</option>
+                    <option value="Contacted" {{ 'selected' if e['status']=='Contacted' }}>Contacted</option>
+                    <option value="Closed" {{ 'selected' if e['status']=='Closed' }}>Closed</option>
+                  </select>
+                </form>
+                <form method="POST" action="{{ url_for('delete_enquiry', enquiry_id=e['id']) }}" onsubmit="return confirm('Delete this enquiry?');">
+                  <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" style="text-align:center; color:var(--grey);">No enquiries yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PROJECTS -->
+    <div class="admin-panel">
+      <h2>Projects</h2>
+      <table>
+        <thead><tr><th>Image</th><th>Title</th><th>Sector</th><th>Summary</th><th></th></tr></thead>
+        <tbody>
+          {% for p in projects %}
+          <tr>
+            <td><img src="{{ p['image_url'] }}" alt="" style="width:64px; height:44px; object-fit:cover; border-radius:2px;"></td>
+            <td>{{ p['title'] }}</td>
+            <td>{{ p['sector'] }}</td>
+            <td style="max-width:280px;">{{ p['summary'] }}</td>
+            <td>
+              <form method="POST" action="{{ url_for('delete_project', project_id=p['id']) }}" onsubmit="return confirm('Delete this project?');">
+                <button type="submit" class="btn btn-danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" style="text-align:center; color:var(--grey);">No projects yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h2 style="margin-top:30px;">Add New Project</h2>
+      <form method="POST" action="{{ url_for('add_project') }}" class="add-project-form">
+        <div class="form-row">
+          <label>Title</label>
+          <input type="text" name="title" required>
+        </div>
+        <div class="form-row">
+          <label>Sector</label>
+          <select name="sector" required>
+            <option>Urban & Infrastructure</option>
+            <option>Environment & Climate Change</option>
+            <option>Engineering & Utility Management</option>
+          </select>
+        </div>
+        <div class="form-row full">
+          <label>Summary</label>
+          <textarea name="summary" rows="3" required></textarea>
+        </div>
+        <div class="form-row full">
+          <label>Image URL (optional — leave blank for default)</label>
+          <input type="url" name="image_url" placeholder="https://images.unsplash.com/...">
+        </div>
+        <div class="full">
+          <button type="submit" class="btn btn-forest">Add Project</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- CHANGE PASSWORD -->
+    <div class="admin-panel">
+      <h2>Change Password</h2>
+      <form method="POST" action="{{ url_for('change_password') }}" style="max-width:360px;">
+        <div class="form-row">
+          <label>Current Password</label>
+          <input type="password" name="current_password" required>
+        </div>
+        <div class="form-row">
+          <label>New Password</label>
+          <input type="password" name="new_password" required minlength="6">
+        </div>
+        <button type="submit" class="btn btn-forest">Update Password</button>
+      </form>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>

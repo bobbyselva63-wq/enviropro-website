@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login — EnviroPro Solutions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600,700;0,700;1,500&family=Inter:wght@400;500;600;700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="login-shell">
+  <div class="login-card">
+    <div class="eyebrow" style="justify-content:center;">EnviroPro Solutions</div>
+    <h1>Admin Login</h1>
+    <div class="rule"></div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, msg in messages %}
+          <div class="flash {{ category }}">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('admin_login') }}" style="text-align:left;">
+      <div class="form-row">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required autofocus>
+      </div>
+      <div class="form-row">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+      <button type="submit" class="btn btn-forest" style="width:100%;">Log In</button>
+    </form>
+
+    <p class="hint">Default credentials: <strong>admin</strong> / <strong>EnviroPro@2026</strong><br>Change this password after your first login.</p>
+    <p class="hint"><a href="{{ url_for('home') }}" style="color:var(--forest-mid);">&larr; Back to website</a></p>
+  </div>
+</div>
+</body>
+</html>

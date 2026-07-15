@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Projects — EnviroPro Solutions{% endblock %}
+{% block content %}
+
+<div class="page-hero">
+  <span class="eyebrow">Our Work</span>
+  <h1>Projects</h1>
+  <p>A look at the environmental and infrastructure engagements we've delivered for our clients.</p>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="projects-grid reveal">
+      {% for p in projects %}
+      <div class="project-card">
+        <img class="img" src="{{ p['image_url'] }}" alt="{{ p['title'] }}">
+        <div class="content">
+          <span class="tag">{{ p['sector'] }}</span>
+          <h3>{{ p['title'] }}</h3>
+          <p>{{ p['summary'] }}</p>
+        </div>
+      </div>
+      {% else %}
+      <p class="empty-state">No projects listed yet — check back soon.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}

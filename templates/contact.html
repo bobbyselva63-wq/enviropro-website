@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Contact Us — EnviroPro Solutions{% endblock %}
+{% block content %}
+
+<div class="page-hero">
+  <span class="eyebrow">Get In Touch</span>
+  <h1>Contact Us</h1>
+  <p>Have a project in mind or need environmental compliance support? Reach out — we'd be glad to help.</p>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="contact-grid reveal">
+      <div class="contact-info">
+        <h3>Let's talk</h3>
+        <div class="rule"></div>
+        <p class="blurb">Fill in the form or reach us directly using the details below. We typically respond within one business day.</p>
+        <div class="cinfo-item">
+          <div class="lbl">Contact Person</div>
+          <div class="val">Christober</div>
+        </div>
+        <div class="cinfo-item">
+          <div class="lbl">Phone</div>
+          <div class="val">{{ phone_display }}</div>
+        </div>
+        <div class="cinfo-item">
+          <div class="lbl">Email</div>
+          <div class="val">{{ email_display }}</div>
+        </div>
+        <a href="{{ whatsapp_link }}" target="_blank" rel="noopener" class="wa-link">
+          <svg width="18" height="18" viewBox="0 0 32 32" fill="#25D366"><path d="M16.001 3C9.098 3 3.5 8.598 3.5 15.5c0 2.44.7 4.72 1.92 6.65L3 29l7.03-2.36a12.42 12.42 0 0 0 5.97 1.52h.005c6.9 0 12.5-5.6 12.5-12.5S22.9 3 16.001 3z"/></svg>
+          Chat on WhatsApp
+        </a>
+      </div>
+      <div class="contact-form">
+        <form method="POST" action="{{ url_for('contact') }}">
+          <div class="form-row">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" placeholder="Your full name" required>
+          </div>
+          <div class="form-row">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="you@company.com" required>
+          </div>
+          <div class="form-row">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" placeholder="+91 00000 00000">
+          </div>
+          <div class="form-row">
+            <label for="message">Requirement / Message</label>
+            <textarea id="message" name="message" rows="4" placeholder="Tell us briefly about your project..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-forest">Send Enquiry</button>
+          <p class="form-note">Your enquiry is saved directly to our system and reviewed by our team.</p>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
