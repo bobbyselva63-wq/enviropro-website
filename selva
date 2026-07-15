@@ -1,0 +1,442 @@
+Flask>=3.0
+
+# EnviroPro Solutions — Website (with Backend)
+
+A full website for EnviroPro Solutions built with **Python (Flask)** and
+**SQLite**, including a public site and a password-protected Admin Panel.
+
+## Pages
+
+| Page | URL | Description |
+|---|---|---|
+| Home | `/` | Hero, sectors, services, approach, featured projects, why-us |
+| Projects | `/projects` | Full project list (pulled from the database) |
+| Contact | `/contact` | Enquiry form — submissions are saved to the database |
+| Admin Login | `/admin/login` | Login to the admin panel |
+| Admin Dashboard | `/admin` | View/manage enquiries, add/remove projects, change password |
+
+A **WhatsApp floating button** (bottom-right, on every page) opens a chat
+with **+91 74188 95070**, the same number used throughout the site.
+
+## Requirements
+
+- Python 3.9+
+- pip
+
+## Setup
+
+```bash
+cd enviropro-site
+pip install -r requirements.txt
+python3 app.py
+```
+
+The site will be available at **http://localhost:5000**
+
+The database file `enviropro.db` (SQLite) is created automatically on first
+run, along with:
+- A default admin account
+- 3 sample projects (with placeholder Unsplash images)
+
+## Default Admin Login
+
+```
+Username: admin
+Password: EnviroPro@2026
+```
+
+**Change this password immediately** after your first login, using the
+"Change Password" panel inside the Admin Dashboard.
+
+## What the Admin Panel Can Do
+
+- View every enquiry submitted through the Contact page (name, email,
+  phone, message, date)
+- Update an enquiry's status: New → Contacted → Closed
+- Delete enquiries
+- Add new projects (title, sector, summary, optional image URL) — these
+  appear instantly on the Home and Projects pages
+- Delete projects
+- Change the admin password
+
+## Project Structure
+
+```
+enviropro-site/
+├── app.py                  # Flask app (routes, DB logic, auth)
+├── requirements.txt
+├── enviropro.db             # SQLite database (auto-created)
+├── templates/
+│   ├── base.html            # Shared layout, nav, WhatsApp button, footer
+│   ├── index.html           # Home page
+│   ├── projects.html        # Projects page
+│   ├── contact.html         # Contact page + form
+│   ├── admin_login.html
+│   └── admin_dashboard.html
+└── static/
+    ├── css/style.css        # Shared classic forest/gold theme
+    └── js/main.js           # Nav toggle + scroll animations
+```
+
+## Notes on Images
+
+The seeded sample projects use free stock photography from **Unsplash**
+(loaded directly from `images.unsplash.com`, no download needed). Replace
+these with your own project photography any time by pasting an image URL
+when adding a project in the Admin panel, or by editing the `image_url`
+values directly in the database.
+
+## Deploying Beyond Your Own Computer
+
+This ships with Flask's built-in development server, which is fine for
+local use or a demo, but is **not meant for production**. To put this
+online for real visitors, deploy it behind a production WSGI server such
+as **gunicorn** or **waitress**, for example:
+
+```bash
+pip install gunicorn
+gunicorn -w 2 -b 0.0.0.0:8000 app:app
+```
+
+...and host it on a platform like Render, Railway, PythonAnywhere, or a
+VPS, pointing your domain at it. Also remember to:
+- Set a strong, random `ENVIROPRO_SECRET` environment variable
+  (used to sign login sessions)
+- Change the default admin password
+- Consider switching from SQLite to PostgreSQL/MySQL if traffic grows
+
+## Security Notes
+
+- Passwords are hashed with Werkzeug's `generate_password_hash` (not
+  stored in plain text)
+- Admin routes are protected by a login-required session check
+- This is a lightweight app meant to get you running quickly — for a
+  public production launch, have it reviewed before going live with real
+  customer data
+
+import os
+import sqlite3
+from datetime import datetime
+from functools import wraps
+
+from flask import (Flask, render_template, request, redirect, url_for,
+                    session, flash, jsonify, g)
+from werkzeug.security import generate_password_hash, check_password_hash
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "enviropro.db")
+
+app = Flask(__name__)
+app.secret_key = os.environ.get("ENVIROPRO_SECRET", "change-this-secret-key-in-production")
+
+WHATSAPP_NUMBER = "917418895070"  # +91 74188 95070, WhatsApp click-to-chat format
+
+
+# ---------------------------------------------------------------------------
+# Database helpers
+# ---------------------------------------------------------------------------
+def get_db():
+    if "db" not in g:
+        g.db = sqlite3.connect(DB_PATH)
+        g.db.row_factory = sqlite3.Row
+    return g.db
+
+
+@app.teardown_appcontext
+def close_db(exception=None):
+    db = g.pop("db", None)
+    if db is not None:
+        db.close()
+
+
+def init_db():
+    first_time = not os.path.exists(DB_PATH)
+    db = sqlite3.connect(DB_PATH)
+    db.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS admin_users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS projects (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            sector TEXT NOT NULL,
+            summary TEXT NOT NULL,
+            image_url TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS enquiries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            phone TEXT,
+            message TEXT,
+            created_at TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'New'
+        );
+        """
+    )
+    db.commit()
+
+    if first_time:
+        # Seed default admin (username: admin / password: EnviroPro@2026)
+        db.execute(
+            "INSERT INTO admin_users (username, password_hash) VALUES (?, ?)",
+            ("admin", generate_password_hash("EnviroPro@2026")),
+        )
+        # Seed a few sample projects with environmental stock imagery
+        sample_projects = [
+            (
+                "Municipal STP Feasibility Study",
+                "Urban & Infrastructure",
+                "Feasibility assessment and design inputs for a new sewage "
+                "treatment plant serving a growing residential zone.",
+                "https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=900&q=80",
+            ),
+            (
+                "Industrial Emissions Compliance Audit",
+                "Environment & Climate Change",
+                "Emissions monitoring and compliance audit for a mid-size "
+                "manufacturing facility, aligned to statutory norms.",
+                "https://images.unsplash.com/photo-1518709268805-4e9042af2176?auto=format&fit=crop&w=900&q=80",
+            ),
+            (
+                "Smart Water Utility Planning",
+                "Engineering & Utility Management",
+                "Utility-scale water distribution and resource-efficiency "
+                "planning for a growing township.",
+                "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=900&q=80",
+            ),
+        ]
+        db.executemany(
+            "INSERT INTO projects (title, sector, summary, image_url, created_at) "
+            "VALUES (?, ?, ?, ?, ?)",
+            [(*p, datetime.utcnow().isoformat()) for p in sample_projects],
+        )
+        db.commit()
+    db.close()
+
+
+# ---------------------------------------------------------------------------
+# Auth helpers
+# ---------------------------------------------------------------------------
+def login_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not session.get("admin_id"):
+            return redirect(url_for("admin_login", next=request.path))
+        return view(*args, **kwargs)
+    return wrapped
+
+
+@app.context_processor
+def inject_globals():
+    return {
+        "whatsapp_link": f"https://wa.me/{WHATSAPP_NUMBER}?text=Hi%20EnviroPro%20Solutions%2C%20I%20have%20an%20enquiry.",
+        "phone_display": "+91 74188 95070",
+        "email_display": "christoberces@gmail.com",
+        "current_year": datetime.utcnow().year,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Public routes
+# ---------------------------------------------------------------------------
+@app.route("/")
+def home():
+    db = get_db()
+    projects = db.execute(
+        "SELECT * FROM projects ORDER BY created_at DESC LIMIT 3"
+    ).fetchall()
+    return render_template("index.html", projects=projects)
+
+
+@app.route("/projects")
+def projects():
+    db = get_db()
+    all_projects = db.execute(
+        "SELECT * FROM projects ORDER BY created_at DESC"
+    ).fetchall()
+    return render_template("projects.html", projects=all_projects)
+
+
+@app.route("/contact", methods=["GET", "POST"])
+def contact():
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip()
+        phone = request.form.get("phone", "").strip()
+        message = request.form.get("message", "").strip()
+
+        if not name or not email:
+            flash("Name and Email are required.", "error")
+            return redirect(url_for("contact"))
+
+        db = get_db()
+        db.execute(
+            "INSERT INTO enquiries (name, email, phone, message, created_at, status) "
+            "VALUES (?, ?, ?, ?, ?, 'New')",
+            (name, email, phone, message, datetime.utcnow().isoformat()),
+        )
+        db.commit()
+        flash("Thank you! Your enquiry has been received. We'll get back to you soon.", "success")
+        return redirect(url_for("contact"))
+
+    return render_template("contact.html")
+
+
+# ---------------------------------------------------------------------------
+# Admin routes
+# ---------------------------------------------------------------------------
+@app.route("/admin/login", methods=["GET", "POST"])
+def admin_login():
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+
+        db = get_db()
+        user = db.execute(
+            "SELECT * FROM admin_users WHERE username = ?", (username,)
+        ).fetchone()
+
+        if user and check_password_hash(user["password_hash"], password):
+            session.clear()
+            session["admin_id"] = user["id"]
+            session["admin_username"] = user["username"]
+            next_url = request.args.get("next") or url_for("admin_dashboard")
+            return redirect(next_url)
+
+        flash("Invalid username or password.", "error")
+        return redirect(url_for("admin_login"))
+
+    return render_template("admin_login.html")
+
+
+@app.route("/admin/logout")
+def admin_logout():
+    session.clear()
+    return redirect(url_for("admin_login"))
+
+
+@app.route("/admin")
+@login_required
+def admin_dashboard():
+    db = get_db()
+    enquiries = db.execute(
+        "SELECT * FROM enquiries ORDER BY created_at DESC"
+    ).fetchall()
+    proj_list = db.execute(
+        "SELECT * FROM projects ORDER BY created_at DESC"
+    ).fetchall()
+    stats = {
+        "total_enquiries": len(enquiries),
+        "new_enquiries": sum(1 for e in enquiries if e["status"] == "New"),
+        "total_projects": len(proj_list),
+    }
+    return render_template(
+        "admin_dashboard.html",
+        enquiries=enquiries,
+        projects=proj_list,
+        stats=stats,
+    )
+
+
+@app.route("/admin/enquiries/<int:enquiry_id>/status", methods=["POST"])
+@login_required
+def update_enquiry_status(enquiry_id):
+    new_status = request.form.get("status", "New")
+    db = get_db()
+    db.execute(
+        "UPDATE enquiries SET status = ? WHERE id = ?", (new_status, enquiry_id)
+    )
+    db.commit()
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/enquiries/<int:enquiry_id>/delete", methods=["POST"])
+@login_required
+def delete_enquiry(enquiry_id):
+    db = get_db()
+    db.execute("DELETE FROM enquiries WHERE id = ?", (enquiry_id,))
+    db.commit()
+    flash("Enquiry deleted.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/projects/add", methods=["POST"])
+@login_required
+def add_project():
+    title = request.form.get("title", "").strip()
+    sector = request.form.get("sector", "").strip()
+    summary = request.form.get("summary", "").strip()
+    image_url = request.form.get("image_url", "").strip() or (
+        "https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?auto=format&fit=crop&w=900&q=80"
+    )
+
+    if title and sector and summary:
+        db = get_db()
+        db.execute(
+            "INSERT INTO projects (title, sector, summary, image_url, created_at) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (title, sector, summary, image_url, datetime.utcnow().isoformat()),
+        )
+        db.commit()
+        flash("Project added.", "success")
+    else:
+        flash("Title, sector, and summary are required.", "error")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/projects/<int:project_id>/delete", methods=["POST"])
+@login_required
+def delete_project(project_id):
+    db = get_db()
+    db.execute("DELETE FROM projects WHERE id = ?", (project_id,))
+    db.commit()
+    flash("Project deleted.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/change-password", methods=["POST"])
+@login_required
+def change_password():
+    current = request.form.get("current_password", "")
+    new = request.form.get("new_password", "")
+    db = get_db()
+    user = db.execute(
+        "SELECT * FROM admin_users WHERE id = ?", (session["admin_id"],)
+    ).fetchone()
+
+    if not user or not check_password_hash(user["password_hash"], current):
+        flash("Current password is incorrect.", "error")
+    elif len(new) < 6:
+        flash("New password must be at least 6 characters.", "error")
+    else:
+        db.execute(
+            "UPDATE admin_users SET password_hash = ? WHERE id = ?",
+            (generate_password_hash(new), user["id"]),
+        )
+        db.commit()
+        flash("Password updated successfully.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+# ---------------------------------------------------------------------------
+# Simple JSON API (optional, for future integrations)
+# ---------------------------------------------------------------------------
+@app.route("/api/projects")
+def api_projects():
+    db = get_db()
+    rows = db.execute("SELECT * FROM projects ORDER BY created_at DESC").fetchall()
+    return jsonify([dict(r) for r in rows])
+
+
+if __name__ == "__main__":
+    init_db()
+    app.run(host="0.0.0.0", port=5000, debug=True)
+else:
+    init_db()
